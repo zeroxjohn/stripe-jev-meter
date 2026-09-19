@@ -8,9 +8,13 @@ Rules for agents working in this repository.
 2. Treat that file as the only complete index of the documentation set.
 3. Prefer the smallest change that preserves the documented domain model.
 
+## Corrected thesis
+
+Static per-resolution pricing is not the failure. The residual problem is unilateral, binary classification of ambiguous outcomes that default to billable. See the master plan before restating the thesis.
+
 ## Canonical vocabulary
 
-Use these names only. Do not invent synonyms.
+Use these names only. Do not invent synonyms. Definitions live in [docs/reference/glossary.md](docs/reference/glossary.md) and [docs/reference/domain-model.md](docs/reference/domain-model.md).
 
 - `ConversationFacts` for checkable facts from logs
 - `EvidenceSnapshot` for the immutable evidence package evaluated
@@ -30,10 +34,18 @@ Before repeating an external claim in docs or discussion:
 1. Check [docs/evidence/claims.md](docs/evidence/claims.md).
 2. If the claim is missing, add a row with status `verified`, `vendor_claim`, `inference`, or `unknown`.
 3. Never upgrade `unknown` or `inference` to `verified` without a primary URL.
+4. Keep Chatbase's own Stripe billing path and other vendors' processors as `unknown` until a primary source appears.
 
 ## Document ownership
 
-Each documentation file owns one topic. Update the owning file when that topic changes. Do not restate domain types outside [docs/reference/domain-model.md](docs/reference/domain-model.md). Sideways links should target the owning document, not a copy.
+Each documentation file owns one topic. Update the owning file when that topic changes.
+
+Rules:
+
+- Do not restate domain types outside [docs/reference/domain-model.md](docs/reference/domain-model.md).
+- Sideways links should target the owning document, not a copy.
+- Leaf docs link up to the master plan.
+- The master plan is the only file that indexes everything.
 
 Every documentation file must declare:
 
@@ -48,8 +60,30 @@ Every documentation file must declare:
 - Use derived, idempotent billing-event identifiers.
 - Correct mistakes with append-only reversals, never silent mutation.
 - Do not send payment credentials or unnecessary PII to Jev.
+- Noul answers expose a probability only. Do not assume a Choice/Score confidence field on Noul.
 - Human review operates on recurring patterns and samples, not every low-value conversation by default.
+- Honor the evaluation falsification condition before expanding auto-bill scope.
 
-## Scope of this pass
+## Scope
 
-This repository currently ships documentation only. Do not add application scaffolding unless a later plan milestone asks for it.
+This repository currently ships the documentation foundation plus future milestones described in [docs/plan/milestones.md](docs/plan/milestones.md). Do not add application scaffolding unless a milestone asks for it.
+
+## Document map
+
+| Path | Owner summary |
+| --- | --- |
+| `docs/MASTER_PLAN.md` | Thesis, index, falsification |
+| `docs/concepts/ambiguous-outcomes.md` | Ambiguity explanation |
+| `docs/concepts/actors-and-incentives.md` | Actors and incentives |
+| `docs/reference/domain-model.md` | Core types |
+| `docs/reference/outcome-grades.md` | Grades and actions |
+| `docs/reference/data-boundaries.md` | Boundary rules |
+| `docs/reference/glossary.md` | Canonical names |
+| `docs/integration/stripe-billing.md` | Stripe/Metronome event contract |
+| `docs/integration/jev-evaluator.md` | Jev adapter contract |
+| `docs/evidence/claims.md` | Claims ledger |
+| `docs/evidence/case-studies.md` | Case study readings |
+| `docs/plan/poc.md` | PoC path |
+| `docs/plan/evaluation.md` | Metrics and go/no-go |
+| `docs/plan/milestones.md` | Build sequence |
+| `docs/plan/open-questions.md` | Open questions |
