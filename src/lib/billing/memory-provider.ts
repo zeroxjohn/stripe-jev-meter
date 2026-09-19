@@ -27,7 +27,7 @@ export class MemoryBillingProvider implements UsageBillingProvider {
       providerEventId: event.billingEventId,
       status: "accepted",
       at: nowTimestamp(),
-      detail: null,
+        detail: "in-process memory",
     };
   }
 

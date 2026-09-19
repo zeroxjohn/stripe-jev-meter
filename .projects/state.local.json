@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "project": {
+    "catalog": "prod",
+    "initializedAt": "2026-09-19T18:40:08.856Z",
+    "merchantDisplayName": null,
+    "merchantId": "acct_1RELgiRrziMsDFMs",
+    "projectId": "project_61VQr8aP0XGRL8ucn16SNje4UeA8tzB4fh8bsU0jg21g",
+    "projectName": "stripe-jev-meter"
+  },
+  "providers": {
+    "vercel": {
+      "accountRequestId": "facctrq_61VQr9Bw9beVMistQ16SNje4UeA8tzB4fh8bsU0jg8D2",
+      "configuration": {},
+      "linkedAt": "2026-09-19T18:40:50.155Z",
+      "providerId": "prvdr_61ULUAr4zlQgZkvXY5LsG",
+      "providerName": "Vercel",
+      "redirectUrl": null,
+      "requestedAt": "2026-09-19T18:40:50.155Z",
+      "status": "complete"
+    }
+  },
+  "resources": {
+    "hosting": {
+      "configuration": {
+        "name": "stripe-jev-meter"
+      },
+      "createdAt": "2026-09-19T18:41:02.326Z",
+      "lastRevealedAt": "2026-09-19T18:41:02.737Z",
+      "lastStatus": "complete",
+      "name": "hosting",
+      "providerId": "prvdr_61ULUAr4zlQgZkvXY5LsG",
+      "providerName": "Vercel",
+      "resourceId": "fres_61VQr9QiYtvbuX7pl16SNje4UeA8tzB4fh8bsU0jg9MW",
+      "serviceId": "project"
+    },
+    "vercel-plan": {
+      "configuration": {},
+      "createdAt": "2026-09-19T18:40:52.874Z",
+      "lastRevealedAt": "2026-09-19T18:40:53.162Z",
+      "lastStatus": "complete",
+      "name": "vercel-plan",
+      "providerId": "prvdr_61ULUAr4zlQgZkvXY5LsG",
+      "providerName": "Vercel",
+      "resourceId": "fres_61VQr9HpfvhJOuoGS16SNje4UeA8tzB4fh8bsU0jgDD6",
+      "serviceId": "hobby"
+    }
+  }
+}

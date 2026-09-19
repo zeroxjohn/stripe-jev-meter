@@ -17,7 +17,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). Walk the four scenarios in the chat. End each thread with Leave silent, That worked, or I already fixed it. The right pane shows the assumed-resolution baseline next to the semantic decision.
 
-`STRIPE_SECRET_KEY` and `TYPESAFE_API_KEY` are optional. Without them the demo uses a recorded Jev fake and an in-memory meter.
+`STRIPE_SECRET_KEY`, `TYPESAFE_API_KEY`, and `OPENROUTER_API_KEY` are optional. Without an evaluator key the demo uses a recorded Jev fake. Without a Stripe secret it uses an in-memory meter.
 
 ## Stripe Projects
 

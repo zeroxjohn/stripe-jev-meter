@@ -23,7 +23,7 @@ Check:
 
 Initialize Stripe Projects in this repository and provision the minimum hackathon stack. See [stripe-projects.md](../integration/stripe-projects.md).
 
-Status: blocked locally. Homebrew refused `stripe` because Xcode 26.4.1 is below the tap's required 27.0. The Next.js app is in this repo and ready for `stripe projects init` once the CLI installs.
+Status: blocked on live-mode credentials. The CLI and Projects plugin are installed. Test-mode meters work on `acct_1RELgiRrziMsDFMs`. `stripe projects init` fails with `PROJECTS_CONTEXT_MISMATCH` plus `PROJECTS_ACCOUNT_IDENTITY_UNCONFIRMED` because this account has no live access until Stripe live activation finishes. Do not re-run `stripe login` for that. After live is on, run `scripts/bootstrap-stripe-projects.sh`.
 
 Check:
 

@@ -2,82 +2,25 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LIVE_SCENARIOS } from "@/lib/scenarios/live";
+import { ProjectPitchModal } from "./project-pitch-modal";
 import type {
   ChatMessage,
   EvaluateResponse,
   ScenarioId,
-  ScenarioScript,
   TerminalAction,
 } from "./poc-types";
 
 const SPRING = { type: "spring" as const, bounce: 0, duration: 0.4 };
 
-const SCENARIOS: ScenarioScript[] = [
-  {
-    id: "abandon-weak",
-    title: "Weak answer, then silence",
-    blurb: "They bill assumed $0.99. We withhold.",
-    seed: {
-      role: "customer",
-      text: "Where is order 1842 and can I still change the delivery address?",
-    },
-    agentReply:
-      "Thanks for reaching out! I am looking into this and should have more information soon.",
-    followUp: "I do not have additional details on that yet.",
-    terminals: ["left"],
-  },
-  {
-    id: "partial-answer",
-    title: "One of two questions",
-    blurb: "They bill assumed $0.99. We bill $0.40.",
-    seed: {
-      role: "customer",
-      text: "I need the tracking number for order 1842 and a refund on the damaged mug.",
-    },
-    agentReply:
-      "Tracking for 1842 is 1Z999AA10123456784. I do not have a refund decision for the mug yet.",
-    followUp: "Still waiting on the refund team for the mug.",
-    terminals: ["left"],
-  },
-  {
-    id: "silent-correction",
-    title: "Wrong answer, silent fix",
-    blurb: "They bill assumed $0.99. We withhold.",
-    seed: {
-      role: "customer",
-      text: "My login is locked after the password reset email bounced.",
-    },
-    agentReply:
-      "Just use the Forgot password link on the login page and you will be back in.",
-    followUp: "The reset link is the only path I have for this.",
-    terminals: ["self_fixed", "left"],
-  },
-  {
-    id: "confirmed-resolution",
-    title: "Confirmed resolution",
-    blurb: "Both bill $0.99.",
-    seed: {
-      role: "customer",
-      text: "When does order 1842 arrive?",
-    },
-    agentReply:
-      "Order 1842 ships tomorrow via UPS. Tracking will email tonight and the window is Tuesday to Wednesday.",
-    followUp: "Happy to help with anything else on that shipment.",
-    terminals: ["confirmed"],
-  },
-  {
-    id: "failed-refund",
-    title: "Failed refund, upbeat text",
-    blurb: "They would bill. Action receipts withhold.",
-    seed: {
-      role: "customer",
-      text: "Please refund the $48 mug from order 1842. It arrived cracked.",
-    },
-    agentReply: "Done. I processed a $48 refund to your original payment method.",
-    followUp: "The refund is complete on our side.",
-    terminals: ["left"],
-  },
-];
+const OUTCOME_KEYS = [
+  "resolved",
+  "partially_resolved",
+  "unresolved",
+  "not_an_answer",
+] as const;
+
+const HUMAN_KEYS = ["absent", "added_detail", "corrected_agent"] as const;
 
 const TERMINAL_COPY: Record<
   TerminalAction,
@@ -116,6 +59,14 @@ function money(value: number) {
   }).format(value);
 }
 
+function percent(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
+
+function humanize(value: string) {
+  return value.replaceAll("_", " ");
+}
+
 function decisionTone(kind: string) {
   if (kind === "bill") return "var(--bill)";
   if (kind === "review") return "var(--review)";
@@ -129,24 +80,16 @@ function decisionLabel(kind: string, grade?: string) {
   return "Withhold";
 }
 
-function yesNo(value: boolean) {
-  return value ? "Yes" : "No";
-}
-
-function ledgerLine(entry: Record<string, unknown>) {
-  if (entry.kind === "charged") {
-    return `charged ${String(entry.billingEventId ?? "").slice(0, 12)}`;
-  }
-  if (entry.kind === "reversed") {
-    return `reversed ${String(entry.reverses ?? "").slice(0, 12)} (${String(entry.reason ?? "")})`;
-  }
-  return String(entry.kind ?? "entry");
-}
-
 function quoteFor(decision: EvaluateResponse["baseline"] | undefined) {
   if (!decision) return 0;
   if (decision.kind !== "bill") return 0;
   return decision.grade === "partial" ? 0.4 : 0.99;
+}
+
+function jevModelLabel(model?: string) {
+  if (!model) return "No verdict";
+  if (model.includes("recorded")) return "Recorded Jev";
+  return model;
 }
 
 export function PocDemo() {
@@ -160,18 +103,15 @@ export function PocDemo() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<EvaluateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pitchOpen, setPitchOpen] = useState(true);
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const pitchTriggerRef = useRef<HTMLButtonElement>(null);
 
   const scenario = useMemo(
-    () => SCENARIOS.find((item) => item.id === scenarioId) ?? SCENARIOS[0],
+    () => LIVE_SCENARIOS.find((item) => item.id === scenarioId) ?? LIVE_SCENARIOS[0],
     [scenarioId],
   );
-
-  useEffect(() => {
-    setResult(null);
-    setError(null);
-  }, [scenarioId, conversationId]);
 
   useEffect(() => {
     threadRef.current?.scrollTo({
@@ -203,7 +143,7 @@ export function PocDemo() {
     } catch {
       // Scripted fallback keeps the demo walkable if the route is not ready.
     }
-    return nextMessages.length <= 1 ? scenario.agentReply : scenario.followUp;
+    return nextMessages.length <= 1 ? scenario.firstReply : scenario.followUp;
   }
 
   async function sendCustomer(text: string) {
@@ -234,7 +174,7 @@ export function PocDemo() {
     if (thread.length === 0) {
       const seeded: ChatMessage[] = [
         scenario.seed,
-        { role: "agent", text: scenario.agentReply },
+        { role: "agent", text: scenario.firstReply },
       ];
       setMessages(seeded);
       thread = seeded;
@@ -265,6 +205,14 @@ export function PocDemo() {
     }
   }
 
+  const billedDecision = result?.reversed
+    ? {
+        kind: "withhold" as const,
+        reason: result.reversed.reason,
+        reasonCodes: ["ledger:customer_reopen"],
+        policyVersion: result.decision.policyVersion,
+      }
+    : result?.decision;
   const baselineQuote = result
     ? (result.baselineQuoteUsd ?? quoteFor(result.baseline))
     : 0;
@@ -275,59 +223,49 @@ export function PocDemo() {
     : scenario.terminals;
 
   return (
-    <div className="flex min-h-dvh flex-col px-[var(--safe-pad)] py-[var(--safe-pad)] md:px-5 md:py-5">
-      <header className="glass mx-auto mb-3 flex w-full max-w-[1400px] items-center justify-between rounded-2xl px-4 py-3 shadow-[var(--shadow-pane)]">
-        <div>
-          <p className="text-[11px] font-semibold tracking-[0.06em] text-[var(--ink-tertiary)] uppercase">
-            Acme Support AI
-          </p>
-          <h1
-            className="text-[1.35rem] font-semibold text-[var(--ink)]"
-            style={{ letterSpacing: "-0.02em", lineHeight: 1.15 }}
-          >
-            Semantic meter
-          </h1>
-        </div>
-        <p className="max-w-sm text-right text-[13px] leading-snug text-[var(--ink-secondary)]">
-          Full resolution $0.99. Partial $0.40. Jev grades. Policy decides.
-          Stripe only sees approved events.
-        </p>
-      </header>
-
-      <nav
-        className="mx-auto mb-3 flex w-full max-w-[1400px] gap-2 overflow-x-auto pb-1"
-        aria-label="Demo scenarios"
+    <>
+      <div
+        className="flex min-h-dvh flex-col px-[var(--safe-pad)] py-[var(--safe-pad)] md:px-5 md:py-5"
+        inert={pitchOpen ? true : undefined}
+        aria-hidden={pitchOpen ? true : undefined}
       >
-        {SCENARIOS.map((item) => {
-          const active = item.id === scenarioId;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onPointerDown={() => undefined}
-              onClick={() => resetTo(item.id)}
-              className={`pressable glass shrink-0 rounded-full px-3.5 py-2 text-left text-[13px] ${
-                active
-                  ? "text-[var(--ink)] shadow-[var(--shadow-pane)]"
-                  : "text-[var(--ink-secondary)]"
-              }`}
-              style={{
-                background: active ? "var(--glass-heavy)" : undefined,
-                fontWeight: active ? 600 : 500,
-              }}
-            >
-              <span className="block">{item.title}</span>
-              <span className="block text-[11px] text-[var(--ink-tertiary)]">
-                {item.blurb}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+        <h1 className="sr-only">Semantic meter proof of concept</h1>
+        <nav
+          className="mx-auto mb-3 flex w-full max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-1"
+          aria-label="Demo scenarios"
+        >
+          {LIVE_SCENARIOS.map((item, index) => {
+            const active = item.id === scenarioId;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-current={active ? "true" : undefined}
+                onPointerDown={() => undefined}
+                onClick={() => resetTo(item.id)}
+                className={`pressable min-h-11 text-[15px] font-medium ${
+                  active
+                    ? "text-[var(--ink)] underline decoration-[var(--accent)] decoration-2 underline-offset-4"
+                    : "text-[var(--ink-tertiary)] decoration-transparent underline underline-offset-4"
+                }`}
+              >
+                Scenario {index + 1}
+              </button>
+            );
+          })}
+          <button
+            ref={pitchTriggerRef}
+            type="button"
+            className="pressable ml-auto min-h-11 rounded-full bg-[var(--fill)] px-4 text-[13px] font-semibold text-[var(--ink-secondary)]"
+            onClick={() => setPitchOpen(true)}
+          >
+            Why this exists
+          </button>
+        </nav>
 
-      <main className="mx-auto grid min-h-0 w-full max-w-[1400px] flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-        <section className="glass flex min-h-[28rem] flex-col overflow-hidden rounded-[28px] shadow-[var(--shadow-pane)]">
-          <div className="glass sticky top-0 z-10 flex items-center justify-between px-5 py-3.5">
+        <main className="mx-auto grid min-h-0 w-full max-w-[1400px] flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+        <section className="glass flex min-h-[28rem] flex-col overflow-hidden rounded-[var(--radius-pane)] shadow-[var(--shadow-pane)]">
+          <div className="pane-chrome sticky top-0 z-10 flex items-center justify-between px-5 py-3.5">
             <div>
               <h2
                 className="text-[17px] font-semibold"
@@ -341,7 +279,7 @@ export function PocDemo() {
             </div>
             <button
               type="button"
-              className="pressable rounded-full bg-[var(--fill)] px-3 py-1.5 text-[12px] font-semibold text-[var(--ink-secondary)]"
+              className="pressable min-h-11 rounded-full bg-[var(--fill)] px-3 text-[12px] font-semibold text-[var(--ink-secondary)]"
               onClick={() => resetTo(scenarioId)}
             >
               Reset
@@ -354,44 +292,89 @@ export function PocDemo() {
           >
             {messages.length === 0 ? (
               <div className="m-auto max-w-sm text-center">
-                <p className="text-[15px] leading-relaxed text-[var(--ink-secondary)]">
+                <p className="text-[22px] leading-snug font-medium tracking-[-0.02em] text-[var(--ink)]">
+                  {scenario.imagine}
+                </p>
+                <p className="mt-4 mb-1 text-[12px] font-semibold text-[var(--ink-tertiary)]">
+                  Your request
+                </p>
+                <p className="text-[15px] leading-relaxed text-[var(--ink)]">
                   {scenario.seed.text}
                 </p>
                 <button
                   type="button"
-                  className="pressable mt-4 rounded-full bg-[var(--accent)] px-4 py-2 text-[13px] font-semibold text-white"
+                  className="pressable mt-4 min-h-11 rounded-full bg-[var(--accent)] px-4 text-[13px] font-semibold text-white"
                   onClick={startSeed}
                 >
                   Send this question
                 </button>
               </div>
             ) : (
-              messages.map((message, index) => (
-                <div
-                  key={`${message.role}-${index}`}
-                  className={`flex ${
-                    message.role === "customer" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <motion.div
-                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={SPRING}
-                    className={`max-w-[85%] rounded-[22px] px-4 py-2.5 text-[15px] leading-snug ${
-                      message.role === "customer"
-                        ? "bg-[var(--accent)] text-white"
-                        : "bg-[var(--fill)] text-[var(--ink)]"
-                    }`}
+              messages.map((message, index) => {
+                const yours = message.role === "customer";
+                return (
+                  <div
+                    key={`${message.role}-${index}`}
+                    className={`flex ${yours ? "justify-end" : "justify-start"}`}
                   >
-                    {message.text}
-                  </motion.div>
-                </div>
-              ))
+                    <div
+                      className={`flex max-w-[85%] flex-col gap-1 ${
+                        yours ? "items-end" : "items-start"
+                      }`}
+                    >
+                      <p className="px-1 text-[12px] font-semibold text-[var(--ink-tertiary)]">
+                        {yours ? "Your request" : "AI support"}
+                      </p>
+                      <motion.div
+                        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={SPRING}
+                        className={`px-4 py-2.5 text-[15px] leading-snug ${
+                          yours
+                            ? "rounded-[var(--radius-bubble)] rounded-br-[var(--radius-bubble-tail)] bg-[var(--accent)] text-white"
+                            : "rounded-[var(--radius-bubble)] rounded-bl-[var(--radius-bubble-tail)] bg-[var(--fill)] text-[var(--ink)]"
+                        }`}
+                      >
+                        {message.text}
+                      </motion.div>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
 
+          {messages.length > 0 ? (
+            <div className="pane-chrome px-4 pb-2 pt-3">
+              <p className="mb-2 text-center text-[13px] font-semibold text-[var(--ink)]">
+                Choose an outcome
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {terminals.map((action) => {
+                  const secondary = action === "reopen";
+                  return (
+                    <button
+                      key={action}
+                      type="button"
+                      title={TERMINAL_COPY[action].hint}
+                      disabled={busy}
+                      onClick={() => void evaluate(action)}
+                      className={`pressable min-h-11 rounded-full px-4 text-[13px] font-semibold disabled:opacity-40 ${
+                        secondary
+                          ? "bg-[var(--fill)] text-[var(--ink-secondary)]"
+                          : "bg-[var(--accent)] text-white"
+                      }`}
+                    >
+                      {TERMINAL_COPY[action].label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <form
-            className="border-t border-[var(--separator)] px-4 py-3"
+            className="pane-chrome px-4 pb-3 pt-2"
             onSubmit={(event) => {
               event.preventDefault();
               void sendCustomer(draft);
@@ -410,190 +393,150 @@ export function PocDemo() {
                   }
                 }}
                 placeholder="Reply as the customer"
-                className="min-h-11 flex-1 resize-none rounded-2xl bg-[var(--fill)] px-3.5 py-2.5 text-[15px] outline-none"
+                className="min-h-11 flex-1 resize-none rounded-[var(--radius-input)] bg-[var(--fill)] px-3.5 py-2.5 text-[16px] outline-none"
               />
               <button
                 type="submit"
                 disabled={busy || draft.trim().length === 0}
-                className="pressable rounded-full bg-[var(--accent)] px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-40"
+                className="pressable min-h-11 rounded-full bg-[var(--fill-strong)] px-4 text-[13px] font-semibold text-[var(--ink)] disabled:opacity-40"
               >
                 Send
               </button>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {terminals.map((action) => (
-                <button
-                  key={action}
-                  type="button"
-                  title={TERMINAL_COPY[action].hint}
-                  disabled={busy}
-                  onClick={() => void evaluate(action)}
-                  className="pressable rounded-full bg-[var(--fill-strong)] px-3 py-1.5 text-[12px] font-semibold text-[var(--ink)] disabled:opacity-40"
-                >
-                  {TERMINAL_COPY[action].label}
-                </button>
-              ))}
-            </div>
           </form>
         </section>
 
-        <section className="glass-heavy flex min-h-[28rem] flex-col overflow-hidden rounded-[28px] shadow-[var(--shadow-pane)]">
+        <section className="glass-heavy flex min-h-[28rem] flex-col overflow-hidden rounded-[var(--radius-sheet)] shadow-[var(--shadow-pane)]">
           <div className="px-5 py-3.5">
+            <p className="text-[11px] font-semibold tracking-[0.06em] text-[var(--ink-tertiary)] uppercase">
+              Jev model
+            </p>
             <h2
               className="text-[17px] font-semibold"
               style={{ letterSpacing: "-0.015em" }}
             >
-              Evaluation
+              Jev evaluation
             </h2>
             <p className="text-[12px] text-[var(--ink-tertiary)]">
-              Updates after a terminal state, not on every keystroke.
+              {result
+                ? `${jevModelLabel(result.evaluation?.model)} · ${result.evaluation?.rubricVersion ?? "no rubric"}`
+                : "End the conversation to run Jev."}
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto px-5 pb-5">
             <AnimatePresence mode="wait">
-              {!result ? (
+              {!result || !billedDecision ? (
                 <motion.p
                   key="idle"
                   initial={reduceMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={SPRING}
                   className="text-[15px] leading-relaxed text-[var(--ink-secondary)]"
                 >
-                  Play a scenario, then leave silent, confirm, or mark a silent
-                  fix. The assumed-resolution baseline and the semantic decision
-                  land here together.
+                  Choose an outcome. Jev grades the thread. Policy sets the
+                  charge Stripe is allowed to see.
                 </motion.p>
               ) : (
                 <motion.div
-                  key={result.evidence.snapshotId}
-                  initial={
-                    reduceMotion ? false : { opacity: 0, scale: 0.98, filter: "blur(8px)" }
-                  }
-                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  key={result.facts.conversationId}
+                  initial={reduceMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   transition={SPRING}
-                  className="flex flex-col gap-4"
+                  className="flex flex-col gap-5"
                 >
-                  <div className="grid grid-cols-2 gap-2">
-                    <DecisionCard
-                      eyebrow="Assumed resolution"
-                      decision={result.baseline}
-                      amount={baselineQuote}
-                    />
-                    <DecisionCard
-                      eyebrow="Semantic policy"
-                      decision={
-                        result.reversed
-                          ? {
-                              kind: "withhold",
-                              reason: result.reversed.reason,
-                              reasonCodes: ["ledger:customer_reopen"],
-                              policyVersion: result.decision.policyVersion,
-                            }
-                          : result.decision
-                      }
-                      amount={oursQuote}
-                      emphasize
-                    />
-                  </div>
-
-                  <div className="rounded-2xl bg-[var(--fill)] px-4 py-3">
-                    <p className="text-[11px] font-semibold tracking-[0.05em] text-[var(--ink-tertiary)] uppercase">
-                      Disagreement
+                  <div>
+                    <p className="text-[13px] font-semibold text-[var(--ink-secondary)]">
+                      Amount to bill
                     </p>
                     <p
-                      className="text-[28px] font-semibold"
-                      style={{ letterSpacing: "-0.03em", lineHeight: 1.1 }}
+                      className="tabular text-[44px] font-semibold"
+                      style={{
+                        letterSpacing: "-0.03em",
+                        lineHeight: 1.02,
+                        color: decisionTone(billedDecision.kind),
+                      }}
                     >
-                      {money(disagreement)}
+                      {money(oursQuote)}
                     </p>
-                    <p className="mt-1 text-[13px] text-[var(--ink-secondary)]">
-                      {disagreement > 0
-                        ? "Fin-style rules would over-bill this silent exit."
-                        : disagreement < 0
-                          ? "Semantic path billed more than the baseline. Inspect the grade."
-                          : "Both paths agree on the charge."}
+                    <p
+                      className="mt-1 text-[15px] font-semibold"
+                      style={{ color: decisionTone(billedDecision.kind) }}
+                    >
+                      {decisionLabel(billedDecision.kind, billedDecision.grade)}
                     </p>
+                    {billedDecision.reason ? (
+                      <p className="mt-1 text-[13px] text-[var(--ink-tertiary)]">
+                        {humanize(billedDecision.reason)}
+                      </p>
+                    ) : null}
                   </div>
 
-                  <FactBlock
-                    title="Conversation facts"
-                    rows={[
-                      ["Agent answered", yesNo(result.facts.agentAnswered)],
-                      [
-                        "Explicit confirmation",
-                        yesNo(result.facts.explicitConfirmation),
-                      ],
-                      ["Human replied", yesNo(result.facts.humanReplied)],
-                      [
-                        "Asked for a human",
-                        yesNo(result.facts.customerRequestedHuman),
-                      ],
-                      [
-                        "Action receipts",
-                        result.facts.actionReceipts.length
-                          ? result.facts.actionReceipts
-                              .map((receipt) => `${receipt.action}:${receipt.status}`)
-                              .join(", ")
-                          : "none",
-                      ],
-                    ]}
-                  />
-
-                  <FactBlock
-                    title="Evidence snapshot"
-                    rows={[
-                      ["Hash", result.evidence.contentHash.slice(0, 16)],
-                      ["Transcript", result.evidence.redactedTranscriptRef],
-                      ["Captured", result.evidence.capturedAt],
-                    ]}
-                  />
-
-                  <FactBlock
-                    title="Semantic verdict"
-                    rows={
-                      result.evaluation
-                        ? [
-                            ["Model", result.evaluation.model],
-                            ["Rubric", result.evaluation.rubricVersion],
-                            ["Outcome", result.evaluation.outcome.choice],
-                            [
-                              "Outcome confidence",
-                              result.evaluation.outcome.confidence.toFixed(2),
-                            ],
-                            [
-                              "Issue addressed (noul)",
-                              result.evaluation.issueAddressed.noul.toFixed(2),
-                            ],
-                            ["Human role", result.evaluation.humanRole.choice],
-                          ]
-                        : [["Verdict", "none. Evaluator did not invent one."]]
-                    }
-                  />
-
-                  <FactBlock
-                    title="Policy"
-                    rows={[
-                      ["Version", result.decision.policyVersion],
-                      ["Reason codes", result.decision.reasonCodes.join(", ") || "none"],
-                      [
-                        "Stripe",
-                        result.receipts[0]
-                          ? `${result.receipts[0].provider} ${result.receipts[0].status}`
-                          : "no usage event",
-                      ],
-                    ]}
-                  />
-
-                  {result.ledger.length > 0 ? (
-                    <FactBlock
-                      title="Ledger"
-                      rows={result.ledger.map((entry, index) => [
-                        `Row ${index + 1}`,
-                        ledgerLine(entry),
-                      ])}
+                  <div className="grid grid-cols-2 gap-3">
+                    <QuietStat
+                      label="Would have billed"
+                      value={money(baselineQuote)}
+                      hint={decisionLabel(
+                        result.baseline.kind,
+                        result.baseline.grade,
+                      )}
                     />
-                  ) : null}
+                    <QuietStat
+                      label="Difference"
+                      value={money(disagreement)}
+                      hint={
+                        disagreement > 0
+                          ? "Saved versus that charge"
+                          : disagreement < 0
+                            ? "Semantic path billed more"
+                            : "Both paths agree"
+                      }
+                    />
+                  </div>
+
+                  <JevRead evaluation={result.evaluation} />
+
+                  <details className="text-[13px] text-[var(--ink-secondary)]">
+                    <summary className="cursor-pointer font-semibold text-[var(--ink)]">
+                      Facts and ledger
+                    </summary>
+                    <div className="mt-3 flex flex-col gap-3">
+                      <FactBlock
+                        rows={[
+                          ["Agent answered", result.facts.agentAnswered ? "Yes" : "No"],
+                          [
+                            "Explicit confirmation",
+                            result.facts.explicitConfirmation ? "Yes" : "No",
+                          ],
+                          ["Human replied", result.facts.humanReplied ? "Yes" : "No"],
+                          [
+                            "Asked for a human",
+                            result.facts.customerRequestedHuman ? "Yes" : "No",
+                          ],
+                          [
+                            "Action receipts",
+                            result.facts.actionReceipts.length
+                              ? result.facts.actionReceipts
+                                  .map((receipt) => `${receipt.action}:${receipt.status}`)
+                                  .join(", ")
+                              : "none",
+                          ],
+                          [
+                            "Policy",
+                            result.decision.reasonCodes.join(", ") || "none",
+                          ],
+                          [
+                            "Stripe",
+                            result.receipts[0]
+                              ? `${result.receipts[0].provider} ${result.receipts[0].status}`
+                              : "no usage event",
+                          ],
+                        ]}
+                      />
+                    </div>
+                  </details>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -605,75 +548,170 @@ export function PocDemo() {
           </div>
         </section>
       </main>
-    </div>
+      </div>
+
+      <ProjectPitchModal
+        open={pitchOpen}
+        onClose={() => {
+          setPitchOpen(false);
+          window.setTimeout(() => pitchTriggerRef.current?.focus(), 0);
+        }}
+      />
+    </>
   );
 }
 
-function DecisionCard({
-  eyebrow,
-  decision,
-  amount,
-  emphasize = false,
+function QuietStat({
+  label,
+  value,
+  hint,
 }: {
-  eyebrow: string;
-  decision: EvaluateResponse["baseline"];
-  amount: number;
-  emphasize?: boolean;
-}) {
-  const tone = decisionTone(decision.kind);
-  return (
-    <div
-      className="rounded-2xl px-4 py-3"
-      style={{
-        background: emphasize ? "var(--fill-strong)" : "var(--fill)",
-      }}
-    >
-      <p className="text-[11px] font-semibold tracking-[0.05em] text-[var(--ink-tertiary)] uppercase">
-        {eyebrow}
-      </p>
-      <p
-        className="mt-1 text-[13px] font-semibold"
-        style={{ color: tone }}
-      >
-        {decisionLabel(decision.kind, decision.grade)}
-      </p>
-      <p
-        className="text-[26px] font-semibold"
-        style={{ letterSpacing: "-0.03em", lineHeight: 1.1, color: tone }}
-      >
-        {money(amount)}
-      </p>
-      {decision.reason ? (
-        <p className="mt-1 text-[12px] text-[var(--ink-tertiary)]">
-          {decision.reason.replaceAll("_", " ")}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function FactBlock({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: Array<[string, string]>;
+  label: string;
+  value: string;
+  hint: string;
 }) {
   return (
     <div>
-      <h3 className="mb-2 text-[13px] font-semibold text-[var(--ink)]">
-        {title}
-      </h3>
-      <dl className="grid grid-cols-[minmax(7rem,10rem)_1fr] gap-x-3 gap-y-1.5 text-[13px]">
-        {rows.map(([label, value]) => (
-          <div key={label} className="contents">
-            <dt className="text-[var(--ink-tertiary)]">{label}</dt>
-            <dd className="truncate text-[var(--ink-secondary)]" title={value}>
-              {value}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <p className="text-[11px] font-semibold tracking-[0.05em] text-[var(--ink-tertiary)] uppercase">
+        {label}
+      </p>
+      <p
+        className="tabular text-[17px] font-semibold text-[var(--ink-secondary)]"
+        style={{ letterSpacing: "-0.02em" }}
+      >
+        {value}
+      </p>
+      <p className="mt-0.5 text-[12px] text-[var(--ink-tertiary)]">{hint}</p>
     </div>
+  );
+}
+
+function JevRead({
+  evaluation,
+}: {
+  evaluation: EvaluateResponse["evaluation"];
+}) {
+  if (!evaluation) {
+    return (
+      <div>
+        <h3 className="mb-1 text-[13px] font-semibold text-[var(--ink)]">
+          Jev
+        </h3>
+        <p className="text-[13px] text-[var(--ink-secondary)]">
+          Jev did not return a verdict. Policy used conversation facts only.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="mb-2 text-[13px] font-semibold text-[var(--ink)]">
+          Jev outcome
+        </h3>
+        <ProbabilityList
+          keys={OUTCOME_KEYS}
+          probabilities={evaluation.outcome.probabilities}
+          chosen={evaluation.outcome.choice}
+        />
+        <p className="mt-2 text-[12px] text-[var(--ink-tertiary)]">
+          Choice confidence {percent(evaluation.outcome.confidence)}
+        </p>
+      </div>
+
+      <div>
+        <div className="mb-1.5 flex items-baseline justify-between gap-3">
+          <h3 className="text-[13px] font-semibold text-[var(--ink)]">
+            Issue addressed
+          </h3>
+          <p className="tabular text-[13px] font-semibold text-[var(--ink-secondary)]">
+            {evaluation.issueAddressed.noul.toFixed(2)}
+          </p>
+        </div>
+        <div className="meter-track">
+          <div
+            className="meter-fill"
+            style={{
+              transform: `scaleX(${Math.min(1, Math.max(0, evaluation.issueAddressed.noul))})`,
+            }}
+          />
+        </div>
+        <p className="mt-1 text-[12px] text-[var(--ink-tertiary)]">
+          Noul probability. No confidence field.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-[13px] font-semibold text-[var(--ink)]">
+          Human role
+        </h3>
+        <ProbabilityList
+          keys={HUMAN_KEYS}
+          probabilities={evaluation.humanRole.probabilities ?? {}}
+          chosen={evaluation.humanRole.choice}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProbabilityList({
+  keys,
+  probabilities,
+  chosen,
+}: {
+  keys: readonly string[];
+  probabilities: Record<string, number>;
+  chosen: string;
+}) {
+  return (
+    <ul className="flex flex-col gap-2">
+      {keys.map((key) => {
+        const value = probabilities[key] ?? 0;
+        const active = key === chosen;
+        return (
+          <li key={key}>
+            <div className="mb-1 flex items-baseline justify-between gap-3">
+              <span
+                className="text-[13px] capitalize"
+                style={{
+                  color: active ? "var(--ink)" : "var(--ink-tertiary)",
+                }}
+              >
+                {humanize(key)}
+              </span>
+              <span className="tabular text-[13px] text-[var(--ink-secondary)]">
+                {percent(value)}
+              </span>
+            </div>
+            <div className="meter-track">
+              <div
+                className="meter-fill"
+                style={{
+                  transform: `scaleX(${Math.min(1, Math.max(0, value))})`,
+                  background: active ? "var(--accent)" : "var(--fill-strong)",
+                }}
+              />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function FactBlock({ rows }: { rows: Array<[string, string]> }) {
+  return (
+    <dl className="grid grid-cols-[minmax(7rem,10rem)_1fr] gap-x-3 gap-y-1.5 text-[13px]">
+      {rows.map(([label, value]) => (
+        <div key={label} className="contents">
+          <dt className="text-[var(--ink-tertiary)]">{label}</dt>
+          <dd className="truncate text-[var(--ink-secondary)]" title={value}>
+            {value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

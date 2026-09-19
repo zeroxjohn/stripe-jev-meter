@@ -6,6 +6,7 @@ export default defineConfig({
     environment: "node",
     env: {
       TYPESAFE_API_KEY: "",
+      OPENROUTER_API_KEY: "",
       STRIPE_SECRET_KEY: "",
     },
   },

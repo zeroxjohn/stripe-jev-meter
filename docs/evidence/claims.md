@@ -54,6 +54,10 @@ Retrieval date for all rows below: 2026-09-19.
 | C035 | The residual problem is the silent-exit-after-answer bucket: silence is not semantic proof of resolution, yet assumed-resolution rules still bill it by default | inference | https://www.intercom.com/help/en/articles/8205718-fin-ai-agent-outcomes | Core thesis after evidence review; supported by C006, C009, C036 |
 | C037 | Stripe Projects is a CLI that scaffolds or provisions full-stack apps and third-party services (hosting, database, auth, and more) with Stripe-linked credentials | verified | https://docs.stripe.com/projects | Hackathon stack requirement surface |
 | C038 | Stripe Projects can initialize in an existing directory and add catalog services without requiring every app to be created from a template rebuild | verified | https://docs.stripe.com/projects | Prefer init-in-place over discarding this docs repo |
+| C039 | Stripe Projects bills third-party provider plans through the linked Stripe account and asks operators to add a payment method | verified | https://docs.stripe.com/projects | Why Projects is not a sandbox-only tool |
+| C040 | Current Projects CLI preflight on a sandbox-only session reports PROJECTS_CONTEXT_MISMATCH and asks for live-mode credentials | inference | https://docs.stripe.com/projects | Measured 2026-09-19 on plugin init --preflight for acct_1RELgiRrziMsDFMs; no public docs URL for the error code |
+| C041 | TypeSafe Jev is evaluated at `POST https://api.typesafe.ai/v1/systemone` with a map of named questions | verified | https://docs.typesafe.ai/api.md | Correct live adapter path |
+| C042 | OpenRouter hosts TypeSafe Jev through `POST https://openrouter.ai/api/alpha/decisions` with model `typesafe/jev-1.13` | verified | https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-questions-and-answers-request | Accepted PoC transport when a TypeSafe key is absent |
 
 ## Rules for this ledger
 

@@ -5,7 +5,7 @@
 - **Update when:** Questions, models, rubric versions, or parse rules change
 - **Back to:** [Master plan](../MASTER_PLAN.md)
 - **Related:** [Domain model](../reference/domain-model.md), [Data boundaries](../reference/data-boundaries.md)
-- **Claims:** C028, C029, C030, C031, C032
+- **Claims:** C028, C029, C030, C031, C032, C041, C042
 
 ## Role
 
@@ -76,6 +76,7 @@ interface SemanticEvaluator {
     snapshot: EvidenceSnapshot
     facts: ConversationFacts
     rubricVersion: RubricVersion
+    transcript?: Array<{ role: "customer" | "agent"; text: string }>
   }): Promise<SemanticVerdict>
 }
 ```
@@ -86,6 +87,15 @@ Provide:
 2. a recorded-response fake for tests and offline demos
 
 The fake and the live adapter must parse into the same `SemanticVerdict` shape.
+
+Live transport, first match wins:
+
+| Env | Endpoint | Model pin |
+| --- | --- | --- |
+| `TYPESAFE_API_KEY` | `POST https://api.typesafe.ai/v1/systemone` | `jev-1.13.0` |
+| `OPENROUTER_API_KEY` | `POST https://openrouter.ai/api/alpha/decisions` | `typesafe/jev-1.13` |
+
+Questions are a named map (`issue_addressed`, `outcome`, `human_role`), not an array. The live adapter sends the redacted transcript as `state.transcript`. OpenRouter is a transport for Jev, not a second evaluator.
 
 ## Failure behavior
 

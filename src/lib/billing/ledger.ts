@@ -6,13 +6,13 @@ import {
   type UsageEvent,
 } from "@/lib/domain";
 import type { UsageBillingProvider } from "./provider";
-import { getBillingStore } from "./store";
+import { getBillingStore, persistBillingStore } from "./store";
 
 export class AppendOnlyLedger {
   constructor(private readonly provider: UsageBillingProvider) {}
 
   async charge(event: UsageEvent): Promise<{ receipt: Receipt; entries: LedgerEntry[] }> {
-    const store = getBillingStore();
+    const store = await getBillingStore();
     const already = store.ledger.some(
       (entry) => entry.kind === "charged" && entry.billingEventId === event.billingEventId,
     );
@@ -26,14 +26,16 @@ export class AppendOnlyLedger {
         at: nowTimestamp(),
       });
     }
+    await persistBillingStore();
     return { receipt, entries: store.ledger };
   }
 
   async reverse(input: {
     reverses: BillingEventId;
     reason: Extract<LedgerEntry, { kind: "reversed" }>["reason"];
+    meter?: UsageEvent["meter"];
   }) {
-    const store = getBillingStore();
+    const store = await getBillingStore();
     const receipt = await this.provider.reverse(input);
     store.receipts.push(receipt);
     store.ledger.push({
@@ -43,6 +45,7 @@ export class AppendOnlyLedger {
       reason: input.reason,
       at: nowTimestamp(),
     });
+    await persistBillingStore();
     return { receipt, entries: store.ledger };
   }
 }

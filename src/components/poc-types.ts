@@ -12,12 +12,16 @@ export type TerminalAction =
   | "requested_human"
   | "reopen";
 
-export type ScenarioId =
-  | "abandon-weak"
-  | "partial-answer"
-  | "silent-correction"
-  | "confirmed-resolution"
-  | "failed-refund";
+export type { ScenarioId } from "@/lib/scenarios/live";
+
+export type StackStatus = {
+  billingAdapter: "memory" | "stripe";
+  stripeKeyKind: "missing" | "claimable" | "secret";
+  evaluatorAdapter: "recorded" | "jev";
+  ledgerAdapter: "memory" | "file" | "postgres";
+  projects: "missing" | "initialized";
+  blockers: string[];
+};
 
 export type DecisionKind = "bill" | "withhold" | "review";
 
@@ -66,6 +70,7 @@ export type EvaluateResponse = {
     humanRole: {
       choice: string;
       confidence: number;
+      probabilities: Record<string, number>;
     };
   } | null;
   baseline: BillingDecisionView;
@@ -80,14 +85,4 @@ export type EvaluateResponse = {
     status: string;
     detail: string | null;
   }>;
-};
-
-export type ScenarioScript = {
-  id: ScenarioId;
-  title: string;
-  blurb: string;
-  seed: ChatMessage;
-  agentReply: string;
-  followUp: string;
-  terminals: TerminalAction[];
 };

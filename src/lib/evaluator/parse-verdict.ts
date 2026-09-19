@@ -4,10 +4,12 @@ import {
   asRubricVersion,
   asSnapshotId,
   asTimestamp,
+  type EvaluationId,
   type Graded,
   type HumanRoleChoice,
   type OutcomeChoice,
   type SemanticVerdict,
+  type Timestamp,
 } from "@/lib/domain";
 
 const OUTCOMES: readonly OutcomeChoice[] = [
@@ -22,6 +24,38 @@ const HUMAN_ROLES: readonly HumanRoleChoice[] = [
   "added_detail",
   "corrected_agent",
 ];
+
+export function parseProviderAnswers(input: {
+  raw: unknown;
+  conversationId: string;
+  snapshotId: string;
+  rubricVersion: string;
+  evaluationId: EvaluationId;
+  evaluatedAt: Timestamp;
+}): SemanticVerdict {
+  if (!isRecord(input.raw)) throw new Error("verdict must be an object");
+  const answers = input.raw.answers;
+  if (!isRecord(answers)) throw new Error("answers is required");
+
+  const issueAddressed = isRecord(answers.issue_addressed)
+    ? { noul: answers.issue_addressed.noul }
+    : answers.issue_addressed;
+
+  return parseSemanticVerdict({
+    evaluationId: input.evaluationId,
+    conversationId: input.conversationId,
+    snapshotId: input.snapshotId,
+    model:
+      typeof input.raw.model === "string" && input.raw.model.length > 0
+        ? input.raw.model
+        : "unknown",
+    rubricVersion: input.rubricVersion,
+    evaluatedAt: input.evaluatedAt,
+    issueAddressed,
+    outcome: answers.outcome,
+    humanRole: answers.human_role,
+  });
+}
 
 export function parseSemanticVerdict(raw: unknown): SemanticVerdict {
   if (!isRecord(raw)) throw new Error("verdict must be an object");

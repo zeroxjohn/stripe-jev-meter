@@ -18,5 +18,6 @@ export interface SemanticEvaluator {
     facts: ConversationFacts;
     rubricVersion: RubricVersion;
     scenarioId?: string;
+    transcript?: Array<{ role: "customer" | "agent"; text: string }>;
   }): Promise<SemanticVerdict>;
 }

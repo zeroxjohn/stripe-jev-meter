@@ -4,8 +4,8 @@ import { FIXTURE_PACK } from "@/lib/fixtures/pack";
 import { quoteContractDollars } from "@/lib/policy/contract-prices";
 import { evaluateConversation } from "./evaluate";
 
-beforeEach(() => {
-  resetBillingStore();
+beforeEach(async () => {
+  await resetBillingStore();
 });
 
 describe("evaluateConversation fixtures", () => {

@@ -55,11 +55,11 @@ Exact provider IDs come from `stripe projects catalog` / [projects.dev/providers
 ## Required workflow before app code ships
 
 1. Install Stripe CLI ≥ 1.40 with `npm install -g @stripe/cli`, then `stripe plugin install projects`. Homebrew on this machine failed because Xcode is below the tap's required version.
-2. `stripe projects init --accept-tos --yes` in this repo.
-3. Keep the installed `.claude/skills/stripe-projects-cli` skill (and mirror into `.cursor/skills/` if useful).
-4. Add hosting + database (minimum).
-5. `stripe projects env --pull` — never commit secret values.
-6. Only then wire Stripe Billing meter emission per [stripe-billing.md](stripe-billing.md).
+2. Use a claimed test account for meters. `rkcs_` keys stay on the in-process memory meter. Projects init still needs live-mode credentials (C039, C040). That is Stripe’s provider-billing gate, not a demo requirement. Do not re-run `stripe login` to paper over `PROJECTS_ACCOUNT_IDENTITY_UNCONFIRMED`. Do not hand-edit `.projects/` to fake init.
+3. `scripts/bootstrap-stripe-projects.sh` runs `stripe projects init --accept-tos --yes`, then adds `vercel/hobby` + `vercel/project` and `neon/free` + `neon/postgres`, then refreshes env. The app writes the append-only ledger to `DATABASE_URL` when that variable is present.
+4. Keep the installed `.claude/skills/stripe-projects-cli` skill (and mirror into `.cursor/skills/` if useful).
+5. Never commit secret values from `stripe projects env`.
+6. Meter emission still follows [stripe-billing.md](stripe-billing.md). The app falls back to an in-process memory meter until `STRIPE_SECRET_KEY` is a claimed test secret.
 
 ## What this deliberately does not do
 

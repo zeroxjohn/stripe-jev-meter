@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" style={{ colorScheme: "light" }}>
       <body className="min-h-full">{children}</body>
     </html>
   );

@@ -9,6 +9,7 @@ import type {
 import { AppendOnlyLedger } from "@/lib/billing/ledger";
 import { createBillingProvider } from "@/lib/billing/stripe-provider";
 import { getBillingStore } from "@/lib/billing/store";
+import { ledgerForConversation, receiptsForLedger } from "@/lib/billing/scope";
 import { createEvaluator, EvaluatorUnavailable } from "@/lib/evaluator";
 import { RUBRIC_VERSION } from "@/lib/evaluator/recorded";
 import { ACME_POLICY } from "@/lib/policy/acme-policy";
@@ -63,6 +64,7 @@ export async function evaluateConversation(input: {
       facts,
       rubricVersion: RUBRIC_VERSION,
       scenarioId: input.scenarioId,
+      transcript: input.messages,
     });
   } catch (error) {
     if (!(error instanceof EvaluatorUnavailable)) throw error;
@@ -71,8 +73,12 @@ export async function evaluateConversation(input: {
   const policyInput = { facts, verdict: evaluation, now: evidence.capturedAt, policy };
   const baseline = decideBaseline(policyInput);
   const decision = decideSemantic(policyInput);
-  const store = getBillingStore();
-  if (!store.provider) store.provider = createBillingProvider();
+  const store = await getBillingStore();
+  const providerKey = `${process.env.STRIPE_SECRET_KEY ?? ""}:${process.env.STRIPE_BILLING_BACKEND ?? ""}`;
+  if (!store.provider || store.providerKey !== providerKey) {
+    store.provider = createBillingProvider();
+    store.providerKey = providerKey;
+  }
   const ledger = new AppendOnlyLedger(store.provider);
   let reversed: EvaluationResult["reversed"] = null;
 
@@ -88,6 +94,7 @@ export async function evaluateConversation(input: {
       await ledger.reverse({
         reverses: prior.billingEventId,
         reason: "customer_reopen",
+        meter: prior.usageEvent.meter,
       });
       reversed = {
         billingEventId: prior.billingEventId,
@@ -115,7 +122,7 @@ export async function evaluateConversation(input: {
     quoteUsd: reversed ? 0 : quoteContractDollars(decision),
     baselineQuoteUsd: quoteContractDollars(baseline),
     reversed,
-    ledger: store.ledger,
-    receipts: store.receipts,
+    ledger: ledgerForConversation(store.ledger, facts.conversationId),
+    receipts: receiptsForLedger(store.receipts, store.ledger, facts.conversationId),
   };
 }
