@@ -60,12 +60,14 @@ Check:
 
 ## M5. Demo UI
 
-Build the inbox, inspector, and ledger views described in [poc.md](poc.md).
+Build the chat + live evaluation dashboard described in [poc.md](poc.md).
 
 Check:
 
-- an operator can walk all fixture outcomes without reading logs
-- baseline and semantic decisions appear side by side
+- left pane: support chat for the 3–4 live demo scenarios
+- right pane: facts, baseline, `SemanticVerdict`, policy, `BillingDecision`, rough $, and Stripe test receipt or withhold — updated after terminal chat state
+- baseline and semantic decisions appear side by side so unfair assumed-resolution bills are visible
+- control scenario (confirmed resolution) bills full on both paths
 
 ## M6. Labeled evaluation run
 
