@@ -10,7 +10,7 @@ Each milestone ends in a real check. Do not start the next milestone until the c
 
 ## M0. Documentation foundation
 
-Status: complete on `main`.
+Status: complete.
 
 Check:
 
@@ -22,6 +22,8 @@ Check:
 ## M0.5. Stripe Projects init
 
 Initialize Stripe Projects in this repository and provision the minimum hackathon stack. See [stripe-projects.md](../integration/stripe-projects.md).
+
+Status: blocked locally. Homebrew refused `stripe` because Xcode 26.4.1 is below the tap's required 27.0. The Next.js app is in this repo and ready for `stripe projects init` once the CLI installs.
 
 Check:
 
