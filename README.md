@@ -2,18 +2,23 @@
 
 An auditable semantic layer above Stripe Billing for AI support outcome pricing.
 
-This repository currently holds the documentation foundation for the project. Application code comes later.
+Silence after an AI answer is not proof the issue was resolved. Fin-style billing often bills that silence as an assumed resolution. This PoC grades the silent-exit bucket, then emits only approved events to Stripe test-mode meters.
 
 **Start here:** [docs/MASTER_PLAN.md](docs/MASTER_PLAN.md)
 
-## What this is
+## Run the PoC
 
-AI support vendors often charge per resolution. Stripe's Fin case study shows the commercial rule clearly: charge when the customer confirms, or when they do not ask for more help after the last AI answer.
+```bash
+pnpm install
+cp env.example .env.local
+pnpm test
+pnpm dev
+```
 
-Silence after an AI answer does not necessarily mean the issue was resolved. Current Fin-style billing often bills it anyway. Stripe and Metronome meter and invoice the events vendors send. They do not independently establish whether that silent exit was a real resolution, an abandonment, or a wrong answer that a human silently fixed.
+Open [http://localhost:3000](http://localhost:3000). Walk the four scenarios in the chat. End each thread with Leave silent, That worked, or I already fixed it. The right pane shows the assumed-resolution baseline next to the semantic decision.
 
-This project designs a confidence-gated evaluation and policy layer that turns support conversations into auditable billing candidates, then emits approved events to Stripe.
+`STRIPE_SECRET_KEY`, `TYPESAFE_API_KEY`, and `OPENROUTER_API_KEY` are optional. Without an evaluator key the demo uses a recorded Jev fake. Without a Stripe secret it uses an in-memory meter.
 
-## Status
+## Stripe Projects
 
-Documentation foundation in progress. No runtime billing path yet.
+Init in this repository when you are ready to provision hosting and a database. See [docs/integration/stripe-projects.md](docs/integration/stripe-projects.md). Projects does not replace Billing meters.

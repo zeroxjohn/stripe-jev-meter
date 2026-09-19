@@ -10,7 +10,7 @@ Each milestone ends in a real check. Do not start the next milestone until the c
 
 ## M0. Documentation foundation
 
-Status: complete on `main`.
+Status: complete.
 
 Check:
 
@@ -22,6 +22,8 @@ Check:
 ## M0.5. Stripe Projects init
 
 Initialize Stripe Projects in this repository and provision the minimum hackathon stack. See [stripe-projects.md](../integration/stripe-projects.md).
+
+Status: blocked on live-mode credentials. The CLI and Projects plugin are installed. Test-mode meters work on `acct_1RELgiRrziMsDFMs`. `stripe projects init` fails with `PROJECTS_CONTEXT_MISMATCH` plus `PROJECTS_ACCOUNT_IDENTITY_UNCONFIRMED` because this account has no live access until Stripe live activation finishes. Do not re-run `stripe login` for that. After live is on, run `scripts/bootstrap-stripe-projects.sh`.
 
 Check:
 

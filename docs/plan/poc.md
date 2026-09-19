@@ -62,6 +62,7 @@ These are the walkthroughs for the chat UI. Each starts from an empty or scripte
 | 2 | Partial answer | Customer asks two things; agent handles one; customer goes silent | Bill assumed full ($0.99) | Bill partial ($0.40) or withhold per contract |
 | 3 | Silent self-correction | Agent gives a wrong answer; customer fixes it offline without saying so or reopening | Bill assumed full ($0.99) | Withhold or review — not an AI resolution |
 | 4 | Control: confirmed resolution | Agent answers correctly; customer says thanks / confirms | Bill full ($0.99) | Bill full ($0.99) — proves we do not over-withhold |
+| 5 | Control: quiet real resolution | Agent answers the return window correctly; customer goes silent | Bill assumed full ($0.99) | Bill full ($0.99) — silence after a real answer still bills |
 
 Optional fifth for action honesty (can stay fixture-only if chat tooling is thin):
 

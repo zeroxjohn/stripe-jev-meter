@@ -112,4 +112,4 @@ Full ledger: [evidence/claims.md](evidence/claims.md).
 
 ## Next implementation step
 
-After this documentation branch merges, start [plan/milestones.md](plan/milestones.md) milestone **M0.5**: initialize Stripe Projects in this repo and provision hosting + database. Then M1: encode the domain model in TypeScript with compile-time illegal-state checks and no billing side effects.
+The PoC app is runnable with `pnpm dev`. Next: install the Stripe CLI once Xcode allows it, then finish [M0.5](plan/milestones.md) with `stripe projects init` and Vercel plus Neon. Live Jev and Stripe test-mode meters attach through `.env.local`.
