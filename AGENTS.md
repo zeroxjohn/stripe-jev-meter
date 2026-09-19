@@ -64,6 +64,15 @@ Every documentation file must declare:
 - Human review operates on recurring patterns and samples, not every low-value conversation by default.
 - Honor the evaluation falsification condition before expanding auto-bill scope.
 
+## UI design
+
+Any UI change — new screens, layout, motion, materials, typography, or interaction polish — must consult the vendored Apple Design skill before implementing:
+
+- [`.cursor/skills/apple-design/SKILL.md`](.cursor/skills/apple-design/SKILL.md)
+- [`.claude/skills/apple-design/SKILL.md`](.claude/skills/apple-design/SKILL.md)
+
+Read the skill in full for the relevant sections (response, springs, materials, typography, reduced motion). Do not invent a competing visual language. PoC demo UI (chat + evaluation dashboard) follows this skill.
+
 ## Scope
 
 This repository currently ships the documentation foundation plus future milestones described in [docs/plan/milestones.md](docs/plan/milestones.md). Do not add application scaffolding unless a milestone asks for it.

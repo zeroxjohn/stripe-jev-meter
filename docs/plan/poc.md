@@ -90,6 +90,8 @@ This baseline exists to measure disagreement, not as the product destination.
 
 ## Surfaces to build later
 
+Design bar: consult [`.cursor/skills/apple-design/SKILL.md`](../../.cursor/skills/apple-design/SKILL.md) (and the Claude mirror) before any UI work. See [AGENTS.md](../../AGENTS.md).
+
 Minimum demo UI — one composition, two panes:
 
 - **Left:** interactive support chat for the live scenarios (scripted agent replies are enough for PoC)

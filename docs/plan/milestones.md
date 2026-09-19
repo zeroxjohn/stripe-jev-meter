@@ -60,7 +60,7 @@ Check:
 
 ## M5. Demo UI
 
-Build the chat + live evaluation dashboard described in [poc.md](poc.md).
+Build the chat + live evaluation dashboard described in [poc.md](poc.md). Consult the vendored Apple Design skill before implementing UI.
 
 Check:
 

@@ -1,0 +1,15 @@
+---
+description: Require Apple Design skill consultation for any UI work
+globs: "**/*.{tsx,jsx,css,scss,html,vue,svelte}"
+alwaysApply: false
+---
+
+# Apple Design for UI
+
+Before building or changing UI (layout, motion, materials, typography, gestures, chrome), read and follow:
+
+- `.cursor/skills/apple-design/SKILL.md`
+
+Also mirrored at `.claude/skills/apple-design/SKILL.md`.
+
+Apply the skill's rules for response latency, interruptible springs, translucent materials, size-specific tracking, and `prefers-reduced-motion`. Do not introduce a separate design system that conflicts with it.
