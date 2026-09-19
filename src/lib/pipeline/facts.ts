@@ -43,7 +43,9 @@ export function deriveFacts(input: {
 
   return {
     conversationId: asConversationId(input.conversationId),
-    customerId: asCustomerId(input.customerId ?? "cus_acme_demo"),
+    customerId: asCustomerId(
+      input.customerId ?? process.env.STRIPE_CUSTOMER_ID ?? "cus_acme_demo",
+    ),
     agentAnswered: input.messages.some((turn) => turn.role === "agent"),
     humanReplied: input.terminal === "self_fixed",
     customerRequestedHuman: input.terminal === "requested_human",

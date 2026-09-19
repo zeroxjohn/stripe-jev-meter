@@ -268,7 +268,7 @@ export function PocDemo() {
   const baselineQuote = result
     ? (result.baselineQuoteUsd ?? quoteFor(result.baseline))
     : 0;
-  const oursQuote = result ? result.quoteUsd : 0;
+  const oursQuote = result?.reversed ? 0 : result ? result.quoteUsd : 0;
   const disagreement = result ? baselineQuote - oursQuote : 0;
   const terminals = result
     ? [...scenario.terminals, "reopen" as const]
@@ -482,7 +482,16 @@ export function PocDemo() {
                     />
                     <DecisionCard
                       eyebrow="Semantic policy"
-                      decision={result.decision}
+                      decision={
+                        result.reversed
+                          ? {
+                              kind: "withhold",
+                              reason: result.reversed.reason,
+                              reasonCodes: ["ledger:customer_reopen"],
+                              policyVersion: result.decision.policyVersion,
+                            }
+                          : result.decision
+                      }
                       amount={oursQuote}
                       emphasize
                     />

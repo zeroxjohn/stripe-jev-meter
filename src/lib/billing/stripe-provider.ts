@@ -6,6 +6,8 @@ import type { UsageBillingProvider } from "./provider";
 export function createBillingProvider(): UsageBillingProvider {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return new MemoryBillingProvider();
+  // Claimable sandbox keys cannot create meters or meter events until claimed.
+  if (key.startsWith("rkcs_")) return new MemoryBillingProvider();
   return new StripeBillingProvider(key);
 }
 

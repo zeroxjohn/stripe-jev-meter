@@ -72,6 +72,7 @@ export type EvaluateResponse = {
   decision: BillingDecisionView;
   quoteUsd: number;
   baselineQuoteUsd?: number;
+  reversed?: { billingEventId: string; reason: string } | null;
   ledger: Array<Record<string, unknown>>;
   receipts: Array<{
     billingEventId: string;

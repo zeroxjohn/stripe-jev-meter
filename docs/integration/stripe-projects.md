@@ -54,7 +54,7 @@ Exact provider IDs come from `stripe projects catalog` / [projects.dev/providers
 
 ## Required workflow before app code ships
 
-1. Install Stripe CLI ≥ 1.40 and `stripe plugin install projects`.
+1. Install Stripe CLI ≥ 1.40 with `npm install -g @stripe/cli`, then `stripe plugin install projects`. Homebrew on this machine failed because Xcode is below the tap's required version.
 2. `stripe projects init --accept-tos --yes` in this repo.
 3. Keep the installed `.claude/skills/stripe-projects-cli` skill (and mirror into `.cursor/skills/` if useful).
 4. Add hosting + database (minimum).

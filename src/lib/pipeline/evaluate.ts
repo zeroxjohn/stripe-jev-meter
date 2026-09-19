@@ -26,6 +26,7 @@ export type EvaluationResult = {
   decision: BillingDecision;
   quoteUsd: number;
   baselineQuoteUsd: number;
+  reversed: { billingEventId: string; reason: string } | null;
   ledger: LedgerEntry[];
   receipts: Receipt[];
 };
@@ -73,6 +74,7 @@ export async function evaluateConversation(input: {
   const store = getBillingStore();
   if (!store.provider) store.provider = createBillingProvider();
   const ledger = new AppendOnlyLedger(store.provider);
+  let reversed: EvaluationResult["reversed"] = null;
 
   if (input.terminal === "reopen") {
     const prior = [...store.ledger]
@@ -87,6 +89,10 @@ export async function evaluateConversation(input: {
         reverses: prior.billingEventId,
         reason: "customer_reopen",
       });
+      reversed = {
+        billingEventId: prior.billingEventId,
+        reason: "customer_reopen",
+      };
     }
   } else if (decision.kind === "bill") {
     await ledger.charge({
@@ -106,8 +112,9 @@ export async function evaluateConversation(input: {
     evaluation,
     baseline,
     decision,
-    quoteUsd: quoteContractDollars(decision),
+    quoteUsd: reversed ? 0 : quoteContractDollars(decision),
     baselineQuoteUsd: quoteContractDollars(baseline),
+    reversed,
     ledger: store.ledger,
     receipts: store.receipts,
   };

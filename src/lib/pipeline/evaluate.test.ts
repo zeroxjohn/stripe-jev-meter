@@ -110,5 +110,10 @@ describe("ledger behavior", () => {
       reverses: billedId,
       reason: "customer_reopen",
     });
+    expect(second.reversed).toMatchObject({
+      billingEventId: billedId,
+      reason: "customer_reopen",
+    });
+    expect(second.quoteUsd).toBe(0);
   });
 });
