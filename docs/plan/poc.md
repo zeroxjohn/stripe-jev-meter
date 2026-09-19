@@ -10,7 +10,7 @@
 
 Show one thing:
 
-> For conversations in the ambiguous silence bucket, a semantic grade plus deterministic policy produces a different, auditable billing decision than the industry assumed-resolution default, and only approved decisions become Stripe test-mode meter events.
+> For conversations in the silent-exit-after-answer bucket, a semantic grade plus deterministic policy produces a different, auditable billing decision than the industry assumed-resolution default, and only approved decisions become Stripe test-mode meter events.
 
 ## Demo story
 

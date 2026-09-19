@@ -30,15 +30,28 @@ This is the strongest positive signal. It still needs policy checks for fraud, a
 
 ## Assumed resolution
 
-Industry practice, documented for Intercom Fin, can treat silence as success after a waiting window. If the customer leaves and does not ask for more help, the system may bill a resolution.
+Industry practice, documented for Intercom Fin and restated on Stripe's Fin case study, treats "no further help requested after the last AI answer" as a billable resolution.
 
-Assumed resolution is operationally useful. It is also the place where abandonment and polite exit look identical to success.
+That rule is operationally useful. It is also the place where success, polite exit, and frustrated abandonment look identical in the logs.
+
+Intercom's own FAQ makes the billing consequence explicit: if a customer is frustrated with Fin's answer and just leaves, that is still an assumed resolution and is charged.
+
+## What industry rules already navigate
+
+Deterministic Fin-style rules already handle some ambiguity:
+
+- explicit confirmation can count as resolved
+- a clarifying question with no reply is abandoned and not billed
+- an explicit ask for a human is not billed as a resolution
+- a later customer reopen can deduct a prior assumed resolution
+
+Those rules matter. They are not enough for the silent-exit-after-answer bucket.
 
 ## Abandonment
 
-The customer stops responding after an incomplete or unhelpful answer. They may open email, leave the site, or ask elsewhere. Silence is not confirmation.
+The customer stops responding after an incomplete or unhelpful answer. They may open email, leave the site, or ask elsewhere. Silence is not semantic proof of success.
 
-A baseline that bills silence will treat many abandonments as revenue.
+A baseline that bills silence after an answer will treat many abandonments as revenue.
 
 ## Partial answer
 
@@ -68,6 +81,6 @@ This project keeps reopen as a deterministic fact and ledger correction, not as 
 
 Per-resolution prices can be fair and commercially successful. Fin showed that customers preferred paying for outcomes over paying for every attempt.
 
-The problem this project attacks is not the dollar amount on a meter. The problem is a binary, vendor-reported verdict that defaults ambiguous silence to billable.
+The problem this project attacks is not the dollar amount on a meter. The problem is that silence after an AI answer is not the same thing as resolution, while assumed-resolution billing still charges for that silence by default.
 
 Semantic grades exist to separate that bucket into contract-defined actions: bill, bill partial, withhold, or review.

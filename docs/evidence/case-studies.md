@@ -20,28 +20,34 @@ Stripe's Fin case study documents the complete chain this project cares about:
 
 1. Online businesses use Fin for customer support.
 2. Fin charges about $0.99 per resolution.
-3. Intercom configures a meter in Stripe Billing.
-4. Intercom sends successful-resolution events through the Stripe API.
-5. Stripe aggregates those events into the customer's bill.
-6. Fin processes more than one million resolutions per week.
+3. A resolution is charged when the customer confirms, **or** when they do not ask for more help after the last AI answer.
+4. Intercom configures a meter in Stripe Billing.
+5. Intercom sends successful-resolution events through the Stripe API.
+6. Stripe aggregates those events into the customer's bill.
+7. Fin processes more than one million resolutions per week.
 
 Intercom's own outcomes help article shows that the industry already uses deterministic rules for ambiguity:
 
 - A customer can confirm that Fin helped.
-- Silence can become an assumed resolution.
+- Silence after an answer can become an assumed resolution and is billed.
+- A clarifying question with no reply is abandoned and not billed.
 - If the customer later returns seeking more help, Intercom deducts that resolution and does not charge it.
+- Intercom's FAQ states that a frustrated customer who just leaves after Fin answers is still charged as an assumed resolution.
 
-That means the claim "current billing ignores ambiguity entirely" is too strong. Fin accounts for some ambiguity with confirmation, silence windows, and reopen reversals.
+That means two claims are both true:
+
+1. "Current billing ignores ambiguity entirely" is too strong.
+2. "Silence means resolved" is also too strong as a semantic claim, even though Fin-style billing often treats silence after an answer as billable.
 
 ### What Fin still leaves open
 
-**Claims:** C011, C012, C035.
+**Claims:** C011, C012, C035, C036.
 
-Intercom community reports describe humans stepping in to correct Fin answers before the customer clicks "Talk to Human." Those cases can still count as assumed resolutions and get billed, because the documented reversal watches the customer return, not the support team intervening.
+The silent-exit-after-answer bucket remains underspecified. Deterministic rules cannot tell success from abandonment there, and the default is to bill. Intercom community reports also describe humans stepping in to correct Fin answers before the customer clicks "Talk to Human." Those cases can still count as assumed resolutions and get billed, because the documented reversal watches the customer return, not the support team intervening.
 
 Intercom leaders also told Stripe they expect AI verification of resolutions as a future pricing shift. That statement is the strongest public invitation for a project like this one.
 
-**Proves:** Outcome events already flow into Stripe. Deterministic assumed-resolution rules exist. Customer-reopen reversal exists. Unilateral classification of ambiguous exits still creates dispute risk.
+**Proves:** Outcome events already flow into Stripe. Deterministic assumed-resolution rules exist and explicitly bill some silent exits. Customer-reopen reversal exists. Unilateral classification of ambiguous exits still creates dispute risk.
 
 **Does not prove:** That every Fin charge is unfair, or that semantic grading will beat Fin's current rules on every corpus.
 
@@ -113,8 +119,9 @@ Jev is TypeSafe's System One model for structured decisions over text or JSON. I
 | Example | Role in the argument |
 | --- | --- |
 | Fin + Stripe | Exact target architecture already in production |
-| Fin outcomes help | Deterministic ambiguity rules already exist |
-| Fin community thread | Residual failure mode this project attacks |
+| Fin outcomes help | Assumed resolution bills silent exits; some other ambiguity is already handled |
+| Fin outcomes FAQ | Frustrated silent leave after an answer is still charged |
+| Fin community thread | Silent human correction residual failure mode |
 | Chatbase | Counterexample and Stripe-direction warning |
 | Zendesk / Gorgias / Decagon / Sierra | Outcome pricing is a category pattern |
 | Retell / Chipp / Browserbase | Stripe already meters objective AI usage |
@@ -123,4 +130,4 @@ Jev is TypeSafe's System One model for structured decisions over text or JSON. I
 
 The product thesis after these cases is narrow:
 
-> Stripe can already bill a resolution event. The missing layer is an auditable, confidence-gated way to decide which ambiguous conversations become that event.
+> Silence after an AI answer does not necessarily mean the issue was resolved. Fin-style billing often charges for that silence anyway. Stripe can already bill the resulting resolution event. The missing layer is an auditable, confidence-gated way to decide which silent-exit conversations deserve that event.

@@ -21,7 +21,7 @@ Retrieval date for all rows below: 2026-09-19.
 | C003 | Metronome meters and rates usage events supplied by applications; Stripe collects payment | verified | https://docs.stripe.com/billing/how-metronome-works-with-stripe | Trust boundary: billing systems trust the event |
 | C004 | Metronome supports multidimensional metering, credits, contracts, and hybrid pricing | vendor_claim | https://stripe.com/billing/usage-based-billing | What the meter layer already covers |
 | C005 | Intercom Fin uses Stripe Billing with a meter and sends successful-resolution usage events by API | verified | https://stripe.com/customers/fin-ai | Exact proof that outcome events flow into Stripe |
-| C006 | Fin launched at $0.99 per resolution / outcome | verified | https://stripe.com/customers/fin-ai | Real outcome price point |
+| C006 | Fin launched at $0.99 per resolution / outcome; Stripe states charges apply when the customer confirms or when they do not ask for more help after the last AI answer | verified | https://stripe.com/customers/fin-ai | Real outcome price point and silent-exit billing rule |
 | C007 | Fin processes more than one million resolutions per week | verified | https://stripe.com/customers/fin-ai | Scale of the outcome-billing market |
 | C008 | fin.ai later states two million weekly resolutions | vendor_claim | https://fin.ai/ | Scale update; self-reported |
 | C009 | A Fin resolution can be customer-confirmed or assumed after the customer leaves without asking for more help | verified | https://www.intercom.com/help/en/articles/8205718-fin-ai-agent-outcomes | Deterministic industry rule for assumed resolution |
@@ -29,6 +29,7 @@ Retrieval date for all rows below: 2026-09-19.
 | C011 | Intercom customers report being billed for assumed resolutions when humans intervene to correct Fin answers before the customer requests a human | vendor_claim | https://community.intercom.com/ask-the-intercom-team-about-fin-54/fin-s-flawed-assumed-resolved-pricing-design-8929 | Evidence that customer-reopen reversal misses human correction |
 | C012 | Intercom leaders expect AI verification of resolutions as a future shift in agent pricing | verified | https://stripe.com/customers/intercom-pricing | Directly validates this project's next-step claim |
 | C013 | Intercom migrated billing onto Stripe Billing to support new products and pricing models including Fin | verified | https://stripe.com/customers/intercom-migration | Stripe is the billing substrate for Fin |
+| C036 | Intercom FAQ: if a customer is frustrated with Fin's answer and just leaves, that is an assumed resolution and is charged | verified | https://www.intercom.com/help/en/articles/8205718-fin-ai-agent-outcomes | Primary proof that silent frustrated exit is billed |
 | C014 | Zendesk publishes automated-resolution pricing around $1.50 committed and $2.00 pay-as-you-go on Suite plans | verified | https://www.zendesk.com/pricing/ | Competing outcome unit |
 | C015 | Zendesk's payment processor for automated-resolution charges is not publicly documented in the sources reviewed here | unknown | https://www.zendesk.com/pricing/ | Do not claim Zendesk uses Stripe |
 | C016 | Gorgias prices AI Agent around resolved interactions for ecommerce merchants | vendor_claim | https://www.gorgias.com/blog/ai-agent-pricing | Ecommerce outcome pricing pattern |
@@ -50,7 +51,7 @@ Retrieval date for all rows below: 2026-09-19.
 | C032 | Independent published calibration of Jev confidence against labeled ground truth was not found in the sources reviewed here | unknown | https://docs.typesafe.ai/confidence | Project must calibrate thresholds itself |
 | C033 | Stripe Billing meters aggregate usage events that the application supplies | verified | https://stripe.com/customers/fin-ai | Billing systems do not invent semantic outcomes |
 | C034 | Static per-resolution pricing is universally broken | inference | https://stripe.com/customers/fin-ai | Rejected by this project; see corrected thesis in master plan |
-| C035 | The residual problem is unilateral, binary classification of ambiguous outcomes that default to billable | inference | https://community.intercom.com/ask-the-intercom-team-about-fin-54/fin-s-flawed-assumed-resolved-pricing-design-8929 | Core thesis after evidence review |
+| C035 | The residual problem is the silent-exit-after-answer bucket: silence is not semantic proof of resolution, yet assumed-resolution rules still bill it by default | inference | https://www.intercom.com/help/en/articles/8205718-fin-ai-agent-outcomes | Core thesis after evidence review; supported by C006, C009, C036 |
 
 ## Rules for this ledger
 
