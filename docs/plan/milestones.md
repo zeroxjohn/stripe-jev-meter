@@ -10,7 +10,7 @@ Each milestone ends in a real check. Do not start the next milestone until the c
 
 ## M0. Documentation foundation
 
-Status: this branch.
+Status: complete on `main`.
 
 Check:
 
@@ -18,6 +18,18 @@ Check:
 - every doc declares mode and ownership
 - claims ledger covers external claims
 - local links resolve
+
+## M0.5. Stripe Projects init
+
+Initialize Stripe Projects in this repository and provision the minimum hackathon stack. See [stripe-projects.md](../integration/stripe-projects.md).
+
+Check:
+
+- `stripe projects status` shows an initialized project
+- hosting + database services are attached
+- `stripe projects env --pull` produces local env names without committing secrets
+- Jev API key is stored as a Projects variable (or explicitly deferred with a tracked open question)
+- app scaffolding, when added, lives in this repo rather than replacing `docs/`
 
 ## M1. Typed domain package
 

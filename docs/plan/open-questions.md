@@ -16,6 +16,7 @@
 | Q6 | How much transcript must buyers see to trust a charge? | Privacy vs auditability | Prototype evidence excerpts with legal review later |
 | Q7 | Should human-corrected AI answers always withhold, or allow a human-assist meter? | Product packaging | Keep withhold for PoC; reopen as a pricing experiment |
 | Q8 | When is Metronome required instead of Stripe Billing meters? | Provider choice | Stay on Stripe meters until volume or contract features demand Metronome |
+| Q11 | How do we satisfy the Stripe Projects hackathon requirement without losing the docs-first repo? | Contest compliance vs product clarity | Init Projects in-place; provision Vercel + Neon; keep Billing meters as the product surface. Answered in [stripe-projects.md](../integration/stripe-projects.md) |
 | Q9 | How should multi-issue conversations be split for billing? | Prevents under/over counting | One conversation one decision for PoC; revisit after corpus review |
 | Q10 | What jurisdiction and retention rules apply to redacted transcripts? | Compliance | Keep PoC fixtures synthetic or fully synthetic-redacted until counsel reviews |
 

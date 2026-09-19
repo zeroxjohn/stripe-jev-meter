@@ -4,7 +4,23 @@
 - **Owns:** The test-mode demonstration path and its acceptance checks
 - **Update when:** Fixtures, baseline rules, demo surfaces, or PoC acceptance criteria change
 - **Back to:** [Master plan](../MASTER_PLAN.md)
-- **Related:** [Evaluation](evaluation.md), [Outcome grades](../reference/outcome-grades.md), [Stripe billing](../integration/stripe-billing.md)
+- **Related:** [Evaluation](evaluation.md), [Outcome grades](../reference/outcome-grades.md), [Stripe billing](../integration/stripe-billing.md), [Stripe Projects](../integration/stripe-projects.md)
+
+## Hackathon stack (Stripe Projects)
+
+Requirement: use [Stripe Projects](../integration/stripe-projects.md) for scaffolding and service provisioning — same pattern as the hackathon example apps (hosting + DB + auth + …).
+
+Product path stays Billing meters. Projects is how the demo is hosted and credentialed:
+
+```text
+stripe projects init
+→ add Vercel + Neon (min)
+→ optional Clerk / Inngest / Sentry
+→ env --pull
+→ app: chat | Jev | policy | Stripe Billing meter event
+```
+
+Do not discard this docs repo for a greenfield `stripe projects build` unless the template files are merged in carefully. Init-in-place is the default.
 
 ## Goal
 

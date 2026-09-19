@@ -21,6 +21,8 @@ Stripe and Metronome trust the usage event. They do not read the transcript to i
 
 Default for the PoC: Stripe Billing test-mode meters, because the Fin case study already documents that path.
 
+Stand up the app stack with [Stripe Projects](stripe-projects.md) (`init`, catalog `add`, `env --pull`). Projects provisions hosting/database/credentials; it does not grade transcripts or invent meter events.
+
 Keep a narrow provider adapter so the same `UsageEvent` can later target Metronome without changing the domain model.
 
 ```ts

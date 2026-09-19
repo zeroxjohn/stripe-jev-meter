@@ -88,6 +88,7 @@ Out of scope for this pass:
 | [reference/data-boundaries.md](reference/data-boundaries.md) | reference | Allowed and rejected fields per boundary |
 | [reference/glossary.md](reference/glossary.md) | reference | Canonical names |
 | [integration/stripe-billing.md](integration/stripe-billing.md) | reference | Meters, idempotency, reversals |
+| [integration/stripe-projects.md](integration/stripe-projects.md) | reference | Projects init, catalog services, env |
 | [integration/jev-evaluator.md](integration/jev-evaluator.md) | reference | Questions, pinning, failures |
 | [evidence/claims.md](evidence/claims.md) | reference | External claims ledger |
 | [evidence/case-studies.md](evidence/case-studies.md) | explanation | What each example proves |
@@ -111,4 +112,4 @@ Full ledger: [evidence/claims.md](evidence/claims.md).
 
 ## Next implementation step
 
-After this documentation branch merges, start [plan/milestones.md](plan/milestones.md) milestone M1: encode the domain model in TypeScript with compile-time illegal-state checks and no billing side effects.
+After this documentation branch merges, start [plan/milestones.md](plan/milestones.md) milestone **M0.5**: initialize Stripe Projects in this repo and provision hosting + database. Then M1: encode the domain model in TypeScript with compile-time illegal-state checks and no billing side effects.

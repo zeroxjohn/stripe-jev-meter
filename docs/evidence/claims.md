@@ -52,6 +52,8 @@ Retrieval date for all rows below: 2026-09-19.
 | C033 | Stripe Billing meters aggregate usage events that the application supplies | verified | https://stripe.com/customers/fin-ai | Billing systems do not invent semantic outcomes |
 | C034 | Static per-resolution pricing is universally broken | inference | https://stripe.com/customers/fin-ai | Rejected by this project; see corrected thesis in master plan |
 | C035 | The residual problem is the silent-exit-after-answer bucket: silence is not semantic proof of resolution, yet assumed-resolution rules still bill it by default | inference | https://www.intercom.com/help/en/articles/8205718-fin-ai-agent-outcomes | Core thesis after evidence review; supported by C006, C009, C036 |
+| C037 | Stripe Projects is a CLI that scaffolds or provisions full-stack apps and third-party services (hosting, database, auth, and more) with Stripe-linked credentials | verified | https://docs.stripe.com/projects | Hackathon stack requirement surface |
+| C038 | Stripe Projects can initialize in an existing directory and add catalog services without requiring every app to be created from a template rebuild | verified | https://docs.stripe.com/projects | Prefer init-in-place over discarding this docs repo |
 
 ## Rules for this ledger
 

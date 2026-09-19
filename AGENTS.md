@@ -77,6 +77,8 @@ Read the skill in full for the relevant sections (response, springs, materials, 
 
 This repository currently ships the documentation foundation plus future milestones described in [docs/plan/milestones.md](docs/plan/milestones.md). Do not add application scaffolding unless a milestone asks for it.
 
+When application work starts, use [Stripe Projects](docs/integration/stripe-projects.md) for init and service provisioning (hackathon requirement). Do not treat Projects as a substitute for Stripe Billing meters or for Jev.
+
 ## Document map
 
 | Path | Owner summary |
@@ -89,6 +91,7 @@ This repository currently ships the documentation foundation plus future milesto
 | `docs/reference/data-boundaries.md` | Boundary rules |
 | `docs/reference/glossary.md` | Canonical names |
 | `docs/integration/stripe-billing.md` | Stripe/Metronome event contract |
+| `docs/integration/stripe-projects.md` | Projects init and stack provisioning |
 | `docs/integration/jev-evaluator.md` | Jev adapter contract |
 | `docs/evidence/claims.md` | Claims ledger |
 | `docs/evidence/case-studies.md` | Case study readings |
