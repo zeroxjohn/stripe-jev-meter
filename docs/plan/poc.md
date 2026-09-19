@@ -16,19 +16,46 @@ Show one thing:
 
 Acme Support AI charges buying businesses $0.99 per full resolution and $0.40 per partial resolution.
 
-An operator uploads a fixture pack of support conversations. The system shows:
+The live demo is one screen:
 
-1. conversation and redacted evidence
+| Pane | Role |
+| --- | --- |
+| Left | Chat. Operator plays the end consumer and sends simple support queries; an AI agent replies in-session. |
+| Right | Evaluation dashboard. Updates when the conversation reaches a terminal state (silence window elapsed, explicit confirm, escalate, or scenario end). |
+
+The right pane shows the full adjudication chain, refreshed for that chat:
+
+1. redacted `EvidenceSnapshot` / transcript summary
 2. `ConversationFacts`
-3. baseline deterministic decision
-4. `SemanticVerdict` from Jev or the recorded fake
-5. `BillingDecision` from policy
-6. review state when needed
-7. resulting Stripe test-mode usage event or withhold reason
+3. baseline assumed-resolution decision (what Fin-style rules would do)
+4. `SemanticVerdict` from Jev or the recorded fake (choices, Noul probabilities, reason codes)
+5. `BillingPolicy` version and the rule that fired
+6. `BillingDecision`: bill, withhold, or review
+7. rough money: contract meter × price (`$0.99` full, `$0.40` partial, or `$0.00` withhold) — never invented by Jev
+8. Stripe test-mode `UsageEvent` / `Receipt` or withhold reason
+
+The operator walks **3–4 live scenarios** where the baseline unfairly bills and the semantic path does not (plus one control that both bill). Fixture packs still back automated tests; the chat is the narrative surface.
+
+## Live demo scenarios
+
+These are the walkthroughs for the chat UI. Each starts from an empty or scripted thread and ends when the right pane settles.
+
+| # | Scenario | What the chat looks like | Baseline (Fin-style) | Our path |
+| --- | --- | --- | --- | --- |
+| 1 | Abandonment after weak answer | Customer asks a concrete question; agent gives a vague or wrong reply; customer goes silent | Bill assumed full ($0.99) | Withhold — silence ≠ resolved |
+| 2 | Partial answer | Customer asks two things; agent handles one; customer goes silent | Bill assumed full ($0.99) | Bill partial ($0.40) or withhold per contract |
+| 3 | Silent self-correction | Agent gives a wrong answer; customer fixes it offline without saying so or reopening | Bill assumed full ($0.99) | Withhold or review — not an AI resolution |
+| 4 | Control: confirmed resolution | Agent answers correctly; customer says thanks / confirms | Bill full ($0.99) | Bill full ($0.99) — proves we do not over-withhold |
+
+Optional fifth for action honesty (can stay fixture-only if chat tooling is thin):
+
+| Scenario | Baseline | Our path |
+| --- | --- | --- |
+| Failed refund with optimistic agent text | Bill assumed full | Withhold — `actionReceipts` failed wins over transcript claims |
 
 ## Fixture pack
 
-Include at least these cases:
+Automated tests keep the fuller pack. Live demo scenarios above must appear here too.
 
 | Fixture | Expected baseline | Expected semantic path |
 | --- | --- | --- |
@@ -63,11 +90,13 @@ This baseline exists to measure disagreement, not as the product destination.
 
 ## Surfaces to build later
 
-Minimum demo UI:
+Minimum demo UI — one composition, two panes:
 
-- conversation inbox with baseline vs semantic decision
-- evaluation inspector with probabilities and reason codes
-- billing ledger with emit and reverse results
+- **Left:** interactive support chat for the live scenarios (scripted agent replies are enough for PoC)
+- **Right:** live evaluation dashboard (facts → baseline → verdict → policy → decision → rough $ → Stripe test receipt or withhold)
+- **Secondary:** small ledger strip or panel for emit / reverse history across the session
+
+Trigger evaluation when the chat hits a terminal state, not on every keystroke. Show baseline and semantic side by side so the unfair bill is visible before the corrected decision.
 
 No production helpdesk sync is required for the PoC.
 
@@ -81,6 +110,7 @@ The PoC passes when all of the following are true:
 4. The failed-action fixture withholds even if the transcript claims success.
 5. The reopen fixture appends a reversal linked to the original billing event id.
 6. No fixture path lets Jev choose a dollar amount.
+7. An operator can run live demo scenarios 1–4 in the chat UI and see the right-pane dashboard update after each terminal state, including rough contract dollars and baseline vs semantic disagreement.
 
 ## Out of scope for the PoC
 
