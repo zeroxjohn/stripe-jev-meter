@@ -10,7 +10,7 @@ Rules for agents working in this repository.
 
 ## Corrected thesis
 
-Static per-resolution pricing is not the failure. The residual problem is unilateral, binary classification of ambiguous outcomes that default to billable. See the master plan before restating the thesis.
+Silence after an AI answer does not necessarily mean the issue was resolved. Current Fin-style billing often bills it anyway as an assumed resolution. Industry rules already handle some ambiguity. The residual problem is that silent-exit bucket. Static per-resolution pricing is not the failure. See the master plan before restating the thesis.
 
 ## Canonical vocabulary
 

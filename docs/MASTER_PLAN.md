@@ -9,17 +9,23 @@
 
 We want a demoable layer above Stripe Billing that helps the buying business inspect charges and helps the AI support vendor defend only the resolutions that deserve a meter event.
 
-The chosen use case is AI support outcome billing. That domain is ambiguous. Current industry billing already accounts for some ambiguity with confirmation, silence windows, and customer-reopen reversals. Static billing for a resolution is not itself the failure.
+The chosen use case is AI support outcome billing. That domain is ambiguous in a specific way:
+
+> A silent response after an AI answer does **not** necessarily mean the issue was resolved. Current industry billing often bills it anyway.
+
+Stripe's Fin case study states the commercial rule directly. A resolution is charged when the customer confirms, **or** when they do not ask for more help after the last AI answer. Intercom's outcomes docs call the second path an assumed resolution, and their FAQ says a frustrated customer who simply leaves is still charged.
+
+Industry standards already navigate some ambiguity with deterministic rules: confirmation, clarifying-question abandonment, human-request escalations, and later customer-reopen deductions. Static per-resolution pricing is not itself the failure. Stripe can meter and invoice those events. It cannot tell semantic truth from a transcript.
 
 The residual failure is narrower:
 
-> Ambiguous conversations remain binary, vendor-reported, and billable by default. A silent exit cannot distinguish success from abandonment. A human can silently correct a wrong AI answer without triggering the customer-reopen reversal.
+> After Fin answers and the customer goes silent, deterministic facts cannot separate success from abandonment. That silent-exit bucket remains binary, vendor-reported, and billable by default. A human can also silently correct a wrong AI answer without triggering the customer-reopen reversal.
 
 Jev produces a versioned `SemanticVerdict`. A deterministic policy produces the `BillingDecision`. Stripe or Metronome prices and invoices the approved event. Jev never invents a price and never emits an event directly.
 
 ## The one ambiguity under test
 
-When a support conversation ends without explicit customer confirmation, without an explicit human request, and without a reopen inside the window, deterministic facts cannot tell a real resolution apart from abandonment or a silently corrected wrong answer. That bucket is currently billed at full price by default under assumed-resolution rules.
+When a support conversation ends after an AI answer without explicit customer confirmation, without an explicit human request, and without a reopen inside the window, deterministic facts cannot tell a real resolution apart from abandonment or a silently corrected wrong answer. Under assumed-resolution rules, that bucket is billed at full price by default, even when the customer left because the answer was wrong.
 
 The proof of concept must show:
 
@@ -94,8 +100,9 @@ Out of scope for this pass:
 
 Primary anchors for the thesis:
 
-- Stripe Fin case study: outcome events already flow into Stripe Billing
-- Intercom outcomes help: confirmation, assumed resolution, and customer-reopen reversal already exist
+- Stripe Fin case study: $0.99 per resolution when confirmed **or** when the customer does not ask for more help; events flow into Stripe Billing meters
+- Intercom outcomes help: confirmed vs assumed resolution; reopen deduction; clarifying-question no-reply is not billed
+- Intercom outcomes FAQ: frustrated customer who just leaves after Fin answers is still an assumed resolution and is charged
 - Intercom community reports: silent human correction can still be billed under assumed resolution
 - Stripe Metronome acquisition: usage metering scale is solved; semantic truth is not
 - TypeSafe Jev docs: typed semantic evaluation is available; calibration remains our job

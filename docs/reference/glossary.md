@@ -10,7 +10,7 @@ Use these names only. Do not introduce synonyms in docs or future code.
 
 | Term | Meaning |
 | --- | --- |
-| Assumed resolution | Deterministic industry rule that treats silence after an agent answer as success after a waiting window |
+| Assumed resolution | Fin-style rule that bills a resolution when the customer does not ask for more help after the last AI answer, including some frustrated silent exits |
 | Billing candidate | A conversation that has facts and optionally a verdict, but is not yet an approved usage event |
 | BillingDecision | Result of the versioned policy: bill, withhold, or review |
 | BillingPolicy | Deterministic rules that map facts and verdicts to decisions |

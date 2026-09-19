@@ -24,7 +24,7 @@ Two supporting actors sit beside them:
 
 ## Where adjudication power sits today
 
-In the Fin-style market, the vendor both delivers the service and decides whether the service succeeded. The buying business pays and often sees only a count of resolutions. The end consumer's silence becomes evidence of success, even though that consumer never agreed to be evidence. Stripe remains neutral and bills the events it receives.
+In the Fin-style market, the vendor both delivers the service and decides whether the service succeeded. The buying business pays and often sees only a count of resolutions. After an AI answer, the end consumer's silence becomes billable evidence of success under assumed-resolution rules, even though that silence is not semantic proof of resolution. Stripe remains neutral and bills the events it receives.
 
 Ambiguous cases therefore default toward the vendor unless a customer reopen or an explicit dispute arrives later.
 
